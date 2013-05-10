@@ -1,0 +1,26 @@
+{
+  "irc": {
+    "name": "localhost",
+    "hostname": "localhost",
+    "password": "",
+    "nick": "minibot",
+    "userName": "minibot",
+    "realName": "minibot",
+    "port": 6667,
+    "autoRejoin": true,
+    "autoConnect": true,
+    "channels": ["#minibot"],
+    "secure": false,
+    "selfSigned": false,
+    "pingInterval": 30,
+    "reconnectAfterMissedPings": 4,
+    "debug": false,
+    "floodProtection": true,
+    "floodProtectionDelay": 1000,
+    "stripColors": false
+  },
+  "http": {
+    "port": 8007,
+    "token": "exampleCHANGEME"
+  }
+}

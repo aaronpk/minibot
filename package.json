@@ -1,0 +1,15 @@
+{
+    "author": "Aaron Parecki (http://aaronparecki.com)",
+    "name": "minibot",
+    "description": "A tiny IRC bot with an HTTP API",
+    "version": "0.1.0",
+    "homepage": "http://github.com/aaronpk/minibot",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/aaronpk/minibot.git"
+    },
+    "dependencies": {
+        "irc": "*",
+        "express": "*"
+    }
+}
