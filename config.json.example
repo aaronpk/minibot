@@ -22,5 +22,8 @@
   "http": {
     "port": 8007,
     "token": "exampleCHANGEME"
+  }, 
+  "udp": {
+    "12345": "minibot"
   }
 }

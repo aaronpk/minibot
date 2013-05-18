@@ -4,12 +4,15 @@ var fs = require('fs');
 var irc = require('irc');
 var express = require('express');
 var app = express();
+var net = require('net'); 
+var dgram = require('dgram');
 
 function load_config(name) {
   return JSON.parse(fs.readFileSync(name, 'utf8'));
 }
 
 var cfg = load_config('./config.json');
+var ports = cfg.udp;
 
 var bot = new irc.Client(cfg.irc.hostname, cfg.irc.nick, cfg.irc);
 
@@ -90,3 +93,50 @@ bot.addListener('names', function(channel, nicks) {
   openRequests = [];
 });
 
+/*
+ * UDP Input
+ */
+
+var udpServers = {}
+
+// Set up the listeners for port-based messages.
+// Clients can send a UDP packet to this port and it will be echoed into the 
+// appropriate channel.
+for(var port in ports) {
+  var channel = ports[port];
+  setUpListener(channel, port);
+}
+
+function setUpListener(channel, port) {
+  udpServers[port] = dgram.createSocket("udp4");
+
+  udpServers[port].on("message", function(buffer, rinfo) {
+    process.stdout.write("[" + channel + "] " + rinfo.address + ":" + rinfo.port + " " + buffer + "\n");
+    handleMessage("#"+channel, ""+buffer);
+  });
+
+  udpServers[port].on("listening", function() {
+    var address = udpServers[port].address();
+    process.stdout.write("[udp] Server listening on " + address.address + ":" + address.port + " for #" + channel + "\n");
+  });
+
+  udpServers[port].bind(port, '0.0.0.0');
+}
+
+function handleMessage(channel, message) {
+
+  if(action = message.match(/^ACTION (.+)/)) {
+    console.log("ACTION "+action[1]);
+    bot.action(channel, action[1]);
+
+  } else if(priv = message.match(/^PRIV ([^ ]+) (.+)/)) {
+    console.log(message);
+    bot.say(priv[1], priv[2]);
+
+  } else if(topic = message.match(/^TOPIC (#[^ ]+) (.+)/)) {
+    bot.send("TOPIC", topic[1], topic[2]);
+
+  } else {
+    bot.say(channel, message);
+  }
+}
