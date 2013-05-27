@@ -2,6 +2,8 @@
 
 A minimal IRC bot used to send messages into an IRC channel via HTTP, UDP and SMTP APIs.
 
+![minibot](minibot-logo-128.png)
+
 ## IRC Service
 
 The IRC bot is configured by creating a config.json file and setting the appropriate config variables.
