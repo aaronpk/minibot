@@ -12,18 +12,19 @@
     "channels": ["#minibot"],
     "secure": false,
     "selfSigned": false,
-    "pingInterval": 30,
-    "reconnectAfterMissedPings": 4,
     "debug": false,
     "floodProtection": true,
     "floodProtectionDelay": 1000,
     "stripColors": false
   },
   "http": {
-    "port": 8007,
+    "port": 8080,
     "token": "exampleCHANGEME"
   }, 
   "udp": {
-    "12345": "minibot"
+    "40000": "minibot"
+  },
+  "smtp": {
+    "port": 2500
   }
 }

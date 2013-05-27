@@ -1,8 +1,8 @@
 {
     "author": "Aaron Parecki (http://aaronparecki.com)",
     "name": "minibot",
-    "description": "A tiny IRC bot with an HTTP API",
-    "version": "0.1.0",
+    "description": "A tiny IRC bot with HTTP, UDP and SMTP APIs",
+    "version": "0.2.0",
     "homepage": "http://github.com/aaronpk/minibot",
     "repository": {
         "type": "git",
@@ -10,6 +10,8 @@
     },
     "dependencies": {
         "irc": "*",
-        "express": "*"
+        "express": "*",
+        "simplesmtp": "*",
+        "mailparser": "*"
     }
 }

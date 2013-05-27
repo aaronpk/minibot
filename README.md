@@ -1,6 +1,6 @@
 # Minibot
 
-A minimal IRC bot used to spew messages into an IRC channel via an HTTP API.
+A minimal IRC bot used to send messages into an IRC channel via HTTP, UDP and SMTP APIs.
 
 ## IRC Service
 
@@ -80,6 +80,60 @@ text = 'Hello from UDP'
 @sock = UDPSocket.open
 @sock.send text, 0, host, port
 ```
+
+
+## SMTP Server
+
+Minibot can run an SMTP server to forward the subject line of incoming emails to IRC channels.
+
+To use this, you would most likely set up an external mail server like Postfix to forward specific email addresses or domains to this service via an alias. 
+
+#### Configuration
+
+Include an "smtp" object in the config file specifying the port you want the SMTP server to listen on:
+
+```
+  "smtp": {
+    "port": 2500
+  }
+```
+
+Then, set up your mail server to forward mail to this service.
+
+Set up an alias passing emails from a domain like @irc.example.com, and this service 
+will send a message into the specified channel based on the "to" address.
+
+This may look something like the following rules in Postfix:
+
+Create an alias mapping your desired external-facing email addresses to the transport:
+
+    @irc.example.com -> @irc-gateway.example.com
+
+Set up a transport routing anything at the gateway address to the minibot service:
+
+    irc-gateway.example.com -> smtp:minibot.example.com:2500
+
+You'll also need to add `irc.example.com` to the "domains" list in Postfix.
+
+You will need to make an MX record for your subdomain as well, for example:
+  
+    irc.example.com. 3600 IN MX 0 mail.example.com.
+
+These are just examples, hopefully there's enough there to get you started. You will probably want to already be familiar with configuring Postfix transports, or at least be able to find other tutorials online.
+
+#### Usage
+
+To send "Hello world" to the channel "#team", you would send an email like this:
+
+    From: aaron@parecki.com
+    To: team@irc.example.com
+    Subject: Hello world
+
+    This text is ignored.
+
+The bot will output the following into the IRC channel #team:
+
+    [aaron@parecki.com] Hello World
 
 
 

@@ -6,26 +6,27 @@ var express = require('express');
 var app = express();
 var net = require('net'); 
 var dgram = require('dgram');
+var simplesmtp = require("simplesmtp");
+var MailParser = require("mailparser").MailParser
 
 function load_config(name) {
   return JSON.parse(fs.readFileSync(name, 'utf8'));
 }
 
 var cfg = load_config('./config.json');
-var ports = cfg.udp;
 
 var bot = new irc.Client(cfg.irc.hostname, cfg.irc.nick, cfg.irc);
 
 bot.addListener('connect', function() {
-  console.log('Connected as "'+bot.nick+'"');
+  console.log('[irc] Connected as "'+bot.nick+'"');
 });
 
 bot.addListener('registered', function(message) {
-  console.log('registered: ', message);
+  console.log('[irc] registered: ', message);
 });
 
 bot.addListener('error', function(message) {
-  console.log('error: ', message);
+  console.log('[irc] error: ', message);
 });
 
 /*
@@ -51,7 +52,7 @@ app.post('/raw', function(req, res) {
   }
 
   var args = req.body.command.split(" ");
-  console.log(args);
+  // console.log(args);
   bot.send.apply(this, args);
   res.send('ok', 200);
 });
@@ -62,13 +63,15 @@ app.post('/channel/:channel', function(req, res) {
     return;
   }
 
-  console.log(req.params.channel + ": " + req.body.message);
+  console.log("[http] " + req.params.channel + ": " + req.body.message);
   bot.say("#"+req.params.channel, req.body.message);
   res.send('ok', 200);
 });
 
-app.listen(cfg.http.port);
-
+if(cfg.http) {
+  app.listen(cfg.http.port);
+  console.log("[http] Server listening on " + cfg.http.port);
+}
 
 /**
  * API Method to retrieve a list of nicks in a channel
@@ -86,7 +89,7 @@ app.get('/channel/:channel/nicks', function(req, res) {
 });
 
 bot.addListener('names', function(channel, nicks) {
-  console.log("names: ", nicks);
+  // console.log("names: ", nicks);
   for(var i in openRequests) {
     openRequests[i].send(JSON.stringify({nicks: nicks}), 200);
   }
@@ -99,14 +102,6 @@ bot.addListener('names', function(channel, nicks) {
 
 var udpServers = {}
 
-// Set up the listeners for port-based messages.
-// Clients can send a UDP packet to this port and it will be echoed into the 
-// appropriate channel.
-for(var port in ports) {
-  var channel = ports[port];
-  setUpListener(channel, port);
-}
-
 function setUpListener(channel, port) {
   udpServers[port] = dgram.createSocket("udp4");
 
@@ -117,7 +112,7 @@ function setUpListener(channel, port) {
 
   udpServers[port].on("listening", function() {
     var address = udpServers[port].address();
-    process.stdout.write("[udp] Server listening on " + address.address + ":" + address.port + " for #" + channel + "\n");
+    console.log("[udp] Server listening on " + address.port + " for #" + channel);
   });
 
   udpServers[port].bind(port, '0.0.0.0');
@@ -126,11 +121,11 @@ function setUpListener(channel, port) {
 function handleMessage(channel, message) {
 
   if(action = message.match(/^ACTION (.+)/)) {
-    console.log("ACTION "+action[1]);
+    // console.log("ACTION "+action[1]);
     bot.action(channel, action[1]);
 
   } else if(priv = message.match(/^PRIV ([^ ]+) (.+)/)) {
-    console.log(message);
+    // console.log(message);
     bot.say(priv[1], priv[2]);
 
   } else if(topic = message.match(/^TOPIC (#[^ ]+) (.+)/)) {
@@ -140,3 +135,76 @@ function handleMessage(channel, message) {
     bot.say(channel, message);
   }
 }
+
+// Set up the listeners for port-based messages.
+// Clients can send a UDP packet to this port and it will be echoed into the 
+// appropriate channel.
+for(var port in cfg.udp) {
+  var channel = cfg.udp[port];
+  setUpListener(channel, port);
+}
+
+
+/*
+ * SMTP
+ */
+
+if(cfg.smtp) {
+
+  // Set up the SMTP server
+  var smtp = simplesmtp.createServer({
+      validateSender: false,
+      disableDNSValidation: true,
+      debug: false
+  });
+  smtp.listen(cfg.smtp.port);
+  console.log("[smtp] Server listening on " + cfg.smtp.port);
+
+  // Set up an event listener when the parsing finishes
+  var mailparser_done = function(mail_object){
+      console.log("[smtp] From:", mail_object.from); //[{address:'sender@example.com',name:'Sender Name'}]
+      console.log("[smtp] To:", mail_object.to); //[{address:'sender@example.com',name:'Sender Name'}]
+      console.log("[smtp] Subject:", mail_object.subject); // Hello world!
+
+      // Determine the channel to deliver the message to
+      var to_address;
+
+      if(mail_object.to && mail_object.to[0]) {
+          to_address = mail_object.to[0].address;
+      } else {
+          console.log("[smtp] Could not find a 'to' address:", mail_object);
+          return;
+      }
+
+      var channel = "#" + to_address.match(/([^@]+)@/)[1];
+      console.log("[smtp] Channel:", channel);
+
+      var from;
+      if(mail_object.from && mail_object.from[0] && mail_object.from[0].address) {
+          from = mail_object.from[0].address;
+      } else {
+          from = "email";
+      }
+
+      bot.say(channel, "["+from+"] "+mail_object.subject);
+  };
+
+  // Initialize the MailParser object when a new email is received
+  smtp.on("startData", function(envelope){
+      envelope.saveStream = new MailParser();
+      envelope.saveStream.on("end", mailparser_done);
+  });
+
+  // Write all data to the MailParser stream
+  smtp.on("data", function(envelope, chunk){
+      envelope.saveStream.write(chunk);
+  });
+
+  // After the email is finished, tell MailParser it's done
+  smtp.on("dataReady", function(envelope, callback){
+      envelope.saveStream.end();
+      callback(null, "irc"); // This is the queue id to be advertised to the client
+  });
+
+}
+
