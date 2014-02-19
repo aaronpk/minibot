@@ -68,6 +68,24 @@ app.post('/channel/:channel', function(req, res) {
   res.send('ok', 200);
 });
 
+app.post('/channel/:channel/errbit', function(req, res) {
+
+
+  console.log("[errbit] " + req.params.channel + ": " + req.body.problem);
+  var info = JSON.parse(req.body.problem);
+  console.log(info);
+
+  var message = "["+info.app_name+"] "+info.message;
+  if(info.notices_count) {
+    message += " ("+info.notices_count+")";
+  }
+  message += " "+cfg.errbitBase+"/apps/"+info.app_id+"/problems/"+info._id;
+
+  bot.say("#"+req.params.channel, message);
+
+  res.send('ok', 200);
+});
+
 if(cfg.http) {
   app.listen(cfg.http.port);
   console.log("[http] Server listening on " + cfg.http.port);

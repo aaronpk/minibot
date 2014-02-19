@@ -26,5 +26,6 @@
   },
   "smtp": {
     "port": 2500
-  }
+  },
+  "errbitBase": "http://example.com"
 }
