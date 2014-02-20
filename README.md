@@ -44,6 +44,11 @@ Request a list of nicks in the specified channel.
 }
 ```
 
+#### `POST /channel/{channel}/errbit`
+
+Set this URL as a notification service in Errbit to have the bot output nicely-formatted messages to an IRC channel from Errbit.
+
+
 ## UDP API
 
 The UDP API mirrors the [MediaWiki RecentChanges IRC Bot](http://www.mediawiki.org/wiki/Manual:MediaWiki-Recent_Changes-IRCBot) protocol.
