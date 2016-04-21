@@ -15,24 +15,24 @@ When the service starts, it will connect and join the specified channels.
 
 #### `POST /channel/{channel}`
 
-Sends a message to the specified channel. The channel should be specified without the "#"
+Sends a message to the specified channel. The channel should be specified including the "#" URL-encoded to "%23".
 
-* `token` - The auth token specified in the config file
-* `message` - The text to send to the channel 
+* `access_token` - The auth token specified in the config file
+* `content` - The text to send to the channel 
 
 
 #### `POST /raw`
 
 Sends a raw IRC command to the server. This can be used to send JOIN and PART messages, as well as PRIV messages to users or other channels.
 
-* `token` - The auth token specified in the config file
+* `access_token` - The auth token specified in the config file
 * `command` - The raw IRC command to send
 
 #### `GET /channel/{channel}/nicks`
 
 Request a list of nicks in the specified channel.
 
-* `token` - The auth token specified in the config file
+* `access_token` - The auth token specified in the config file
 
 ```
 {

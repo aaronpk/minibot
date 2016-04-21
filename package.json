@@ -1,17 +1,18 @@
 {
-    "author": "Aaron Parecki (http://aaronparecki.com)",
-    "name": "minibot",
-    "description": "A tiny IRC bot with HTTP, UDP and SMTP APIs",
-    "version": "0.2.0",
-    "homepage": "http://github.com/aaronpk/minibot",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/aaronpk/minibot.git"
-    },
-    "dependencies": {
-        "irc": "*",
-        "express": "*",
-        "simplesmtp": "*",
-        "mailparser": "*"
-    }
+  "author": "Aaron Parecki (http://aaronparecki.com)",
+  "name": "minibot",
+  "description": "A tiny IRC bot with HTTP, UDP and SMTP APIs",
+  "version": "0.2.0",
+  "homepage": "http://github.com/aaronpk/minibot",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aaronpk/minibot.git"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "express": "^4.13.4",
+    "irc": "*",
+    "mailparser": "*",
+    "simplesmtp": "*"
+  }
 }

@@ -3,6 +3,7 @@ process.chdir(__dirname);
 var fs = require('fs');
 var irc = require('irc');
 var express = require('express');
+var bodyParser = require('body-parser');
 var app = express();
 var net = require('net'); 
 var dgram = require('dgram');
@@ -43,33 +44,32 @@ bot.addListener('message', function(nick, to, text, type) {
  * HTTP API
  */
 
-app.use(express.bodyParser());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/raw', function(req, res) {
-  if(req.body.token != cfg.http.token) {
-    res.send('forbidden', 403);
+  if(req.body.access_token != cfg.http.token) {
+    res.status(403).send('forbidden');
     return;
   }
 
   var args = req.body.command.split(" ");
   // console.log(args);
   bot.send.apply(this, args);
-  res.send('ok', 200);
+  res.status(202).send('ok');
 });
 
 app.post('/channel/:channel', function(req, res) {
-  if(req.body.token != cfg.http.token) {
-    res.send('forbidden', 403);
+  if(req.body.access_token != cfg.http.token) {
+    res.status(403).send('forbidden');
     return;
   }
 
-  console.log("[http] " + req.params.channel + ": " + req.body.message);
-  bot.say("#"+req.params.channel, req.body.message);
-  res.send('ok', 200);
+  console.log("[http] " + req.params.channel + ": " + req.body.content);
+  bot.say(req.params.channel, req.body.content);
+  res.status(202).send('ok');
 });
 
 app.post('/channel/:channel/errbit', function(req, res) {
-
 
   console.log("[errbit] " + req.params.channel + ": " + req.body.problem);
   var info = JSON.parse(req.body.problem);
@@ -83,7 +83,7 @@ app.post('/channel/:channel/errbit', function(req, res) {
 
   bot.say("#"+req.params.channel, message);
 
-  res.send('ok', 200);
+  res.status(202).send('ok');
 });
 
 if(cfg.http) {
@@ -97,8 +97,8 @@ if(cfg.http) {
 var openRequests = [];
 
 app.get('/channel/:channel/nicks', function(req, res) {
-  if(req.query.token != cfg.http.token) {
-    res.send('forbidden', 403);
+  if(req.query.access_token != cfg.http.token) {
+    res.status(403).send('forbidden');
     return;
   }
 
